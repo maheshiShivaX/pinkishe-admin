@@ -1,0 +1,7 @@
+# Enable URL rewriting
+RewriteEngine On
+
+# If the requested URL does not match a file, serve the index.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [QSA,L]
