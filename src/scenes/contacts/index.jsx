@@ -86,6 +86,7 @@ const Contacts = () => {
     items: [],
     logicOperator: "and",
   });
+  const [debouncedFilter, setDebouncedFilter] = useState(filterModel);
 
   const [page, setPage] = useState(0); // MUI uses 0-based index
   const [pageSize, setPageSize] = useState(10);
@@ -106,7 +107,38 @@ const Contacts = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedFilter(filterModel);
+    }, 100); // 500ms delay
+
+    return () => clearTimeout(handler);
+  }, [filterModel]);
+
+  // useEffect(() => {
+  //   if (token) {
+  //     dispatch(
+  //       fetchDispenseHistory({
+  //         token,
+  //         page: page + 1,
+  //         pageSize,
+  //         startDate,
+  //         endDate,
+  //         filters: filterModel.items,
+  //       })
+  //     );
+  //   }
+  // }, [dispatch, token, page, pageSize, startDate, endDate, filterModel]);
+
+  useEffect(() => {
     if (token) {
+
+      const filters = debouncedFilter.items
+        .filter(item => item.value) // only keep filters with a value
+        .map(item => ({
+          field: item.field,
+          value: item.value
+        }));
+
       dispatch(
         fetchDispenseHistory({
           token,
@@ -114,13 +146,41 @@ const Contacts = () => {
           pageSize,
           startDate,
           endDate,
-          filters: filterModel.items,
+          filters
         })
       );
     }
-  }, [dispatch, token, page, pageSize, startDate, endDate, filterModel]);
+  }, [dispatch, token, page, pageSize, startDate, endDate, debouncedFilter]);
 
   const formatDate = (dateString) => {
+    const date = new Date(dateString);
+
+    // Convert to UTC components to match T00:00:00Z / T23:59:59Z
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    const hours = String(date.getUTCHours()).padStart(2, "0");
+    const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+    const seconds = String(date.getUTCSeconds()).padStart(2, "0");
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  };
+
+  const formatDate3 = (dateString) => {
+    const date = new Date(dateString);
+    const options = {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    };
+    return date.toLocaleString("en-US", options);
+  };
+
+  const formatDate1 = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleString("en-US", {
       year: "numeric",
@@ -133,17 +193,29 @@ const Contacts = () => {
     });
   };
 
+  const formatDateForAPI = (date) => {
+    if (!date) return null;
+    return dayjs(date).format("YYYY-MM-DD");
+  };
+
   // ✅ Export handler
   const handleExport = async () => {
     if (!token) return;
 
     try {
+      const filters = filterModel.items
+        .filter(item => item.value) // only keep filters with a value
+        .map(item => ({
+          field: item.field,
+          value: item.value
+        }));
+
       const resultAction = await dispatch(
         getDispenseHistoryExportData({
           token,
-          startDate,
-          endDate,
-          filters: filterModel.items,
+          startDate: formatDateForAPI(startDate),
+          endDate: formatDateForAPI(endDate),
+          filters
         })
       );
 
@@ -164,6 +236,7 @@ const Contacts = () => {
           "School Spoc",
           "NGO Spoc",
           "Status Indicator", // ✅ New column
+          "ManualPads"
         ];
 
         const csvRows = [
@@ -172,7 +245,7 @@ const Contacts = () => {
             [
               row.id,
               row.machineId,
-              formatDate(row.createdAt),
+              formatDate1(row.createdAt),
               row.itemsDispensed,
               row.stock,
               row.school?.schoolName || "",
@@ -182,6 +255,7 @@ const Contacts = () => {
               row.school?.schoolSpocName || "",
               row.school?.ngoSpocName || "",
               row.statusIndicator || "", // ✅ Include field from API
+              row.manualPads || "",
             ]
               .map((val) => `"${val}"`)
               .join(",")
@@ -322,23 +396,11 @@ const Contacts = () => {
     );
   };
 
-  const filteredData = (dispenseDetails?.data || [])
-    .filter((item) => {
-      const createdDate = new Date(item.createdAt);
-      const start = startDate ? new Date(startDate) : null;
-      const end = endDate
-        ? new Date(new Date(endDate).setHours(23, 59, 59, 999))
-        : null;
-
-      if (start && createdDate < start) return false;
-      if (end && createdDate > end) return false;
-      return true;
-    })
-    .map((item) => ({
-      ...item,
-      id: item.id,
-      createdAt: formatDate(item.createdAt),
-    }));
+  const filteredData = (dispenseDetails?.data || []).map((item) => ({
+    ...item,
+    id: item.id,
+    createdAt: formatDate3(item.createdAt),
+  }));
 
   const handleClearDateRange = () => {
     setStartDate(null);
@@ -354,11 +416,40 @@ const Contacts = () => {
     }
   };
 
-  if (loading) return <CircularProgress />;
+  // if (loading) return <CircularProgress />;
   if (error) return <Typography color="error">Error: {error}</Typography>;
 
   return (
     <Box m="20px">
+      {exportLoading && (
+        <Box
+          sx={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.4)",
+            zIndex: 13000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Box
+            sx={{
+              background: "#ffffff00",
+              p: 3,
+              borderRadius: 2,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 2,
+            }}
+          >
+            <CircularProgress color="secondary" />
+            <Typography>Exporting data, please wait…</Typography>
+          </Box>
+        </Box>
+      )}
+
       <Header
         title="Dispense History"
         subtitle="List of Dispense History from All Vending Machines"
@@ -509,10 +600,7 @@ const Contacts = () => {
           columns={columns}
           components={{ Toolbar: CustomToolbar }}
           paginationMode="server"
-          paginationModel={{
-            page: page,
-            pageSize: pageSize,
-          }}
+          paginationModel={{ page, pageSize }}
           onPaginationModelChange={({ page, pageSize }) => {
             setPage(page);
             setPageSize(pageSize);
@@ -523,8 +611,8 @@ const Contacts = () => {
             setFilterModel(newModel);
             setPage(0);
           }}
-          filterMode="server"
         />
+
       </Box>
     </Box>
   );

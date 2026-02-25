@@ -29,6 +29,15 @@ import DispenseHistory from "./scenes/dispenseHistory";
 import NgoSpocForm from "./scenes/ngoSpocForm";
 import RefillingHistory from "./scenes/refillingHistory";
 import NgoSpocList from "./scenes/ngoSpocList";
+import ManualPadDistribute from "./scenes/manualDistribute";
+import OrganisationalReports from "./scenes/organisationalReports";
+import SavedReports from "./scenes/reports/SavedReports";
+import MachineWiseDispenseReport from "./scenes/organisationalReports/MachineWiseDispenseReport";
+import StateDistrictWiseDispense from "./scenes/organisationalReports/StateDistrictWiseDispense";
+import AvgConsumptionComparisonReport from "./scenes/organisationalReports/AvgConsumptionComparisonReport";
+import MachineWiseDispenseRefill from "./scenes/reports/MachineWiseDispenseRefill";
+import LastActivityReport from "./scenes/reports/LastActivityReports";
+import DispenseReport from "./scenes/reports/DispenseReport";
 
 const AppRouter = () => {
   return (
@@ -146,6 +155,114 @@ const AppRouter = () => {
           />
 
           <Route
+            path="/reports/machine_wise_dispense"
+            element={
+              <PrivateRoute>
+                <MachineWiseDispenseReport />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/reports/state_district_wise_dispense"
+            element={
+              <PrivateRoute>
+                <StateDistrictWiseDispense />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/reports/avg_consumption_comparison"
+            element={
+              <PrivateRoute>
+                <AvgConsumptionComparisonReport />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/reports/machine_wise_dispense/:mode/:id"
+            element={
+              <PrivateRoute>
+                <MachineWiseDispenseReport />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/reports/state_district_wise_dispense/:mode/:id"
+            element={
+              <PrivateRoute>
+                <StateDistrictWiseDispense />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/reports/avg_consumption_comparison/:mode/:id"
+            element={
+              <PrivateRoute>
+                <AvgConsumptionComparisonReport />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/reports/machine_wise_dispense_refill"
+            element={
+              <PrivateRoute>
+                <MachineWiseDispenseRefill />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/reports/machine_wise_dispense_refill/:mode/:id"
+            element={
+              <PrivateRoute>
+                <MachineWiseDispenseRefill />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/reports/dispense_report"
+            element={
+              <PrivateRoute>
+                <DispenseReport />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/reports/:type/:mode/:id"
+            element={
+              <PrivateRoute>
+                <DispenseReport />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/reports/last_activity_report"
+            element={
+              <PrivateRoute>
+                <LastActivityReport />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/saved-reports/:role"
+            element={
+              <PrivateRoute>
+                <SavedReports />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
             path="/registerSchool"
             element={
               <PrivateRoute>
@@ -221,6 +338,24 @@ const AppRouter = () => {
             element={
               <PrivateRoute>
                 <AllocationForm />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/manual-pad-distribute"
+            element={
+              <PrivateRoute>
+                <ManualPadDistribute />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/manual-pad-distribute/:id"
+            element={
+              <PrivateRoute>
+                <ManualPadDistribute />
               </PrivateRoute>
             }
           />

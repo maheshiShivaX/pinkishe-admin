@@ -80,6 +80,7 @@ function Dashboard({ }) {
     const now = new Date().getTime();
 
     vendingMachines.forEach((machine) => {
+      // console.log(machine?.status)
       if (machine.status !== "active") return;
 
       const updatedAt = machine?.onlineStatusUpdatedAt;

@@ -112,10 +112,16 @@ const RefillingHistory = () => {
 
   const formatDate1 = (dateString) => {
     const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // months are 0-based
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
+
+    // Convert to UTC components to match T00:00:00Z / T23:59:59Z
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    const hours = String(date.getUTCHours()).padStart(2, "0");
+    const minutes = String(date.getUTCMinutes()).padStart(2, "0");
+    const seconds = String(date.getUTCSeconds()).padStart(2, "0");
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   };
 
   useEffect(() => {
@@ -146,17 +152,29 @@ const RefillingHistory = () => {
     });
   };
 
+  const formatDateForAPI = (date) => {
+    if (!date) return null;
+    return dayjs(date).format("YYYY-MM-DD");
+  };
+
   // ✅ Export handler for Refilling History
   const handleExport = async () => {
     if (!token) return;
 
     try {
+      const filters = filterModel.items
+        .filter(item => item.value) // only keep filters with a value
+        .map(item => ({
+          field: item.field,
+          value: item.value
+        }));
+
       const resultAction = await dispatch(
         fetchRefillingHistoryExportData({
           token,
-          startDate,
-          endDate,
-          filters: filterModel.items,
+          startDate: formatDateForAPI(startDate),
+          endDate: formatDateForAPI(endDate),
+          filters: filters,
         })
       );
 
@@ -544,7 +562,7 @@ const RefillingHistory = () => {
             setFilterModel(newModel);
             setPage(0);
           }}
-          filterMode="server"
+        // filterMode="server"
         />
       </Box>
     </Box>

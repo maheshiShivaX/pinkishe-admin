@@ -37,6 +37,8 @@ const Team = () => {
   const { userDetails, loading, error } = useSelector((state) => state.user);
   const token = localStorage.getItem("authToken");
   const loggedInUsername = localStorage.getItem("username"); // Retrieve logged-in username
+  const roleId = Number(localStorage.getItem("roleId"));
+  const role = localStorage.getItem("userRole"); // ✅ string
 
   useEffect(() => {
     if (token) {
@@ -109,6 +111,7 @@ const Team = () => {
               borderRadius={1}
             >
               {assignedRole === "admin" && <AdminPanelSettingsOutlined />}
+              {assignedRole === "superadmin" && <AdminPanelSettingsOutlined />}
               {assignedRole === "user" && <LockOpenOutlined />}
               <Typography textTransform="capitalize">{assignedRole}</Typography>
             </Box>
@@ -142,7 +145,26 @@ const Team = () => {
     },
   ];
 
-  const rows = userDetails.map((item) => ({
+  const filteredUsers = userDetails.filter((user) => {
+    if (roleId === 1 || role?.toLowerCase() === "superadmin") {
+      // superadmin → admin + user
+      return user.role === "admin" || user.role === "user";
+    }
+
+    if (roleId === 2) {
+      // admin → only user
+      return user.role === "user";
+    }
+
+    // user → only self (optional) OR no users
+    if (roleId === 3 || role?.toLowerCase() === "user") {
+      return user.username === loggedInUsername; // ya return false;
+    }
+
+    return false;
+  });
+
+  const rows = filteredUsers.map((item) => ({
     ...item,
     id: item.username,
   }));
@@ -158,22 +180,22 @@ const Team = () => {
   return (
     <Box m="20px">
       <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb="20px"
-          flexWrap="wrap"
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        mb="20px"
+        flexWrap="wrap"
+      >
+        <Header title="USERS" subtitle="Assign Roles to Unassigned Users here" />
+        <Button
+          color="secondary"
+          variant="contained"
+          onClick={() => navigate(`/userForm`)}
         >
-          <Header title="USERS" subtitle="Assign Roles to Unassigned Users here" />
-          <Button
-            color="secondary"
-            variant="contained"
-            onClick={() => navigate(`/userForm`)}
-          >
-            Add User
-          </Button>
-        </Box>
-     
+          Add User
+        </Button>
+      </Box>
+
       <NotificationModal />
       <Box
         mt="40px"

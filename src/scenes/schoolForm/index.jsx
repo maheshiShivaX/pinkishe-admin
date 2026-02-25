@@ -61,7 +61,7 @@ const SchoolForm = () => {
     geoLocation: "",
     numberOfGirls: "",
     schoolSpocName: "",
-    schoolSpocMobileNo:"",
+    schoolSpocMobileNo: "",
     ngoSpocName: "",
     ngoSpocName2: "",
     ngoCoordinatorName: "",
@@ -75,16 +75,16 @@ const SchoolForm = () => {
       setInitialValues({
         schoolName: schoolData.schoolName,
         schoolAddress: schoolData.schoolAddress,
-        schoolBlock: schoolData.schoolBlock,
-        schoolDistrict: schoolData.schoolDistrict,
-        state: schoolData.state,
+        schoolBlock: (schoolData.schoolBlock || "").trim(),
+        schoolDistrict: (schoolData.schoolDistrict || "").trim(),
+        state: (schoolData.state || "").trim(),
         pinCode: schoolData.pinCode,
         geoLocation: schoolData.geoLocation,
         numberOfGirls: schoolData.numberOfGirls,
-        schoolSpocName: schoolData.schoolSpocName,
-        ngoSpocName: schoolData.ngoSpocName,
-        ngoSpocName2: schoolData.ngoSpocName2 || "",
-        ngoCoordinatorName: schoolData.ngoCoordinatorName || "",
+        schoolSpocName: (schoolData.schoolSpocName || "").trim(),
+        ngoSpocName: (schoolData.ngoSpocName || "").trim(),
+        ngoSpocName2: (schoolData.ngoSpocName2 || "").trim(),
+        ngoCoordinatorName: (schoolData.ngoCoordinatorName || "").trim(),
         ngoSpocMobileNo: schoolData.ngoSpocMobileNo || "",
         ngoSpocMobileNo2: schoolData.ngoSpocMobileNo2 || "",
         ngoCoordinatorMobileNo: schoolData.ngoCoordinatorMobileNo || "",
@@ -155,6 +155,14 @@ const SchoolForm = () => {
 
     setBlockOptions([...new Set(filteredBlocks.map((item) => item.block))]);
   };
+
+  // 🩵 Preload districts and blocks on edit
+  useEffect(() => {
+    if (schoolData && geoLocationData?.length > 0) {
+      handleStateChange(schoolData.state);
+      handleDistrictChange(schoolData.schoolDistrict.trim(), schoolData.state);
+    }
+  }, [schoolData, geoLocationData]);
 
   const handleFormSubmit = (values, actions) => {
     if (id) {
@@ -313,27 +321,22 @@ const SchoolForm = () => {
                 </Select>
               </FormControl>
 
-              <FormControl
-                fullWidth
-                variant="filled"
-                sx={{ gridColumn: "span 4" }}
-              >
+              {/* Block */}
+              <FormControl fullWidth variant="filled" sx={{ gridColumn: "span 4" }}>
                 <InputLabel>Block</InputLabel>
                 <Select
-                  label="Block"
-                  value={values.schoolBlock}
+                  name="schoolBlock"
+                  value={(values.schoolBlock || "").trim()}
                   onBlur={handleBlur}
                   onChange={handleChange}
-                  name="schoolBlock"
-                  disabled={!values.state || !values.schoolDistrict} // Disable if state or district is not selected
-                  error={touched.schoolBlock && errors.schoolBlock}
+                  disabled={!values.schoolDistrict}
+                  error={touched.schoolBlock && Boolean(errors.schoolBlock)}
                 >
-                  {blockOptions &&
-                    blockOptions.map((block, index) => (
-                      <MenuItem key={index} value={block}>
-                        {block}
-                      </MenuItem>
-                    ))}
+                  {blockOptions.map((block, i) => (
+                    <MenuItem key={i} value={block.trim()}>
+                      {block.trim()}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
 
@@ -376,41 +379,50 @@ const SchoolForm = () => {
                 helperText={touched.numberOfGirls && errors.numberOfGirls}
                 sx={{ gridColumn: "span 4" }}
               />
-              <FormControl
-                fullWidth
-                variant="filled"
-                sx={{ gridColumn: "span 4" }}
-              >
-                <InputLabel>School SPOC</InputLabel>
-                <Select
-                  label="School SPOC"
-                  value={values.schoolSpocName}
-                  onBlur={handleBlur}
-                  onChange={(e) => {
-                    const selectedName = e.target.value;
-                    handleChange(e);
-                    const selectedSpoc = schoolSpocs.find(
-                      (spoc) => spoc.spocName === selectedName
-                    );
-                    setFieldValue(
-                      "schoolSpocMobileNo",
-                      selectedSpoc?.spocMobileNo || ""
-                    );
-                  }}
-                  name="schoolSpocName"
-                  error={
-                    touched.schoolSpocName && Boolean(errors.schoolSpocName)
-                  }
-                >
-                  {schoolSpocs.map((spoc) => (
-                    <MenuItem key={spoc.id} value={spoc.spocName}>
-                      {spoc.spocName}
+
+              {/* ✅ Final Fixed School SPOC Select */}
+              {schoolSpocs?.length > 0 && (
+                <FormControl fullWidth variant="filled" sx={{ gridColumn: "span 4" }}>
+                  <InputLabel>School SPOC</InputLabel>
+                  <Select
+                    label="School SPOC"
+                    name="schoolSpocName"
+                    value={
+                      schoolSpocs.find(
+                        (spoc) =>
+                          spoc.spocName.trim().toLowerCase() ===
+                          (values.schoolSpocName || "").trim().toLowerCase() ||
+                          spoc.spocName.split("-")[0].trim().toLowerCase() ===
+                          (values.schoolSpocName || "").trim().toLowerCase()
+                      )?.spocName.trim() || ""
+                    }
+                    onBlur={handleBlur}
+                    onChange={(e) => {
+                      const selectedName = e.target.value.trim();
+                      handleChange(e);
+
+                      const selectedSpoc = schoolSpocs.find(
+                        (spoc) =>
+                          spoc.spocName.trim().toLowerCase() === selectedName.toLowerCase() ||
+                          spoc.spocName.split("-")[0].trim().toLowerCase() ===
+                          selectedName.toLowerCase()
+                      );
+
+                      setFieldValue("schoolSpocMobileNo", selectedSpoc?.spocMobileNo || "");
+                    }}
+                    error={touched.schoolSpocName && Boolean(errors.schoolSpocName)}
+                  >
+                    <MenuItem value="">
+                      <em>Select School SPOC</em>
                     </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-
+                    {schoolSpocs.map((spoc) => (
+                      <MenuItem key={spoc.id} value={spoc.spocName.trim()}>
+                        {spoc.spocName.trim()}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
 
               <FormControl
                 fullWidth

@@ -38,7 +38,9 @@ export const verifyOtp = createAsyncThunk(
         // Store the token in localStorage
         localStorage.setItem('authToken', response.data.token);
         localStorage.setItem('userRole', response.data.role);
+        localStorage.setItem('roleId', response.data.roleId);
         localStorage.setItem('username', response.data.username);
+        localStorage.setItem('name', response.data.name);
         return response.data.token;  // JWT Token
       }
 

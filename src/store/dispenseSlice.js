@@ -25,59 +25,54 @@ const initialState = {
   exportRefillingError: null,
 };
 
-// Thunk
 export const fetchDispenseHistory = createAsyncThunk(
-  'dispense/fetchDispenseHistory',
-  async ({ token, page, pageSize, startDate, endDate, filters } = {}) => {
-    let url = `${config.apiUrl}/api/getDispenseHistory?`;
+  "dispense/fetchDispenseHistory",
+  async ({ token, page = 1, pageSize = 10, startDate, endDate, filters } = {}) => {
+    let url = `${config.apiUrl}/api/getDispenseHistory?page=${page}&pageSize=${pageSize}&`;
 
-    // Pagination
-    if (page !== undefined) url += `page=${page}&`;
-    if (pageSize !== undefined) url += `pageSize=${pageSize}&`;
-
-    // Date filters
+    // Date filters only if provided
     if (startDate) {
       const d = new Date(startDate);
       url += `startDate=${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}&`;
     }
-
     if (endDate) {
       const d = new Date(endDate);
       url += `endDate=${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}&`;
     }
 
-    // You can add additional filters here if needed
-
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to fetch data');
+    // Filters
+    if (filters?.length) {
+      url += `filters=${encodeURIComponent(JSON.stringify(filters))}&`;
     }
 
+    url = url.replace(/&$/, "");
+
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await response.json();
+
     return {
-      data: data.data,
-      total: data.total,
+      data: data.data || [],
+      total: data.total || 0,
     };
   }
 );
 
 
-// Thunk fetchDispenseHistory with startdate and end date
+// Thunk fetchDispenseHistory with startDate, endDate, and filters
 export const getDispenseHistoryExportData = createAsyncThunk(
   'dispense/getDispenseHistoryExportData',
-  async ({ token, startDate, endDate }) => {
+  async ({ token, startDate, endDate, filters }) => {
     let url = `${config.apiUrl}/api/getDispenseHistoryExportData`;
 
-    // Add startDate & endDate params if provided
+    // ✅ Build query params
     const queryParams = [];
     if (startDate) queryParams.push(`startDate=${startDate}`);
     if (endDate) queryParams.push(`endDate=${endDate}`);
+    if (filters?.length) {
+      queryParams.push(`filters=${encodeURIComponent(JSON.stringify(filters))}`);
+    }
 
     if (queryParams.length > 0) {
       url += `?${queryParams.join("&")}`;
@@ -96,12 +91,11 @@ export const getDispenseHistoryExportData = createAsyncThunk(
     }
 
     return {
-      data: data.data,   // full export data
-      total: data.total, // total count if API provides
+      data: data.data,
+      total: data.total,
     };
   }
 );
-
 
 // Thunk to fetch dispense history for a specific machine
 export const fetchDispenseHistoryForMachineId = createAsyncThunk(
@@ -198,13 +192,16 @@ export const fetchRefillingHistory = createAsyncThunk(
 // Thunk fetchDispenseHistory with startdate and end date
 export const fetchRefillingHistoryExportData = createAsyncThunk(
   'dispense/getRefillingHistoryExportData',
-  async ({ token, startDate, endDate }) => {
+  async ({ token, startDate, endDate, filters }) => {
     let url = `${config.apiUrl}/api/getRefillingHistoryExportData`;
 
     // Add startDate & endDate params if provided
     const queryParams = [];
     if (startDate) queryParams.push(`startDate=${startDate}`);
     if (endDate) queryParams.push(`endDate=${endDate}`);
+    if (filters?.length) {
+      queryParams.push(`filters=${encodeURIComponent(JSON.stringify(filters))}`);
+    }
 
     if (queryParams.length > 0) {
       url += `?${queryParams.join("&")}`;
@@ -239,7 +236,7 @@ const dispenseSlice = createSlice({
     builder
       // Handling the fetchDispenseHistory actions
       .addCase(fetchDispenseHistory.pending, (state) => {
-        state.loading = true;
+        state.loading = false;
       })
       .addCase(fetchDispenseHistory.fulfilled, (state, action) => {
         state.loading = false;
@@ -253,7 +250,8 @@ const dispenseSlice = createSlice({
 
       // ✅ Handling the getDispenseHistoryExportData actions
       .addCase(getDispenseHistoryExportData.pending, (state) => {
-        state.exportLoading = false;
+        state.exportLoading = true;   // ✅ FIX
+        state.exportError = null;
       })
       .addCase(getDispenseHistoryExportData.fulfilled, (state, action) => {
         state.exportLoading = false;

@@ -116,9 +116,9 @@ const Invoices = () => {
         </Typography>
       ),
     },
-    { field: "gsmModuleImei", headerName: "GSM Module IMEI", flex: 1 },
+    // { field: "gsmModuleImei", headerName: "GSM Module IMEI", flex: 1 },
     { field: "vendorName", headerName: "Vendor", flex: 1 },
-    { field: "simCardNumber", headerName: "Sim Card Number", flex: 1 },
+    // { field: "simCardNumber", headerName: "Sim Card Number", flex: 1 },
     { field: "padCapacity", align: "center", headerName: "Pad Capacity", flex: 1 },
     {
       field: "remaingStock",
@@ -228,7 +228,7 @@ const Invoices = () => {
       filterable: false,
       sortable: false,
       renderCell: (params) => {
-        if (userRole === "admin") {
+        if (userRole === "admin" || userRole === "superadmin") {
           return (
             <IconButton
               onClick={() => navigate(`/edit-vending-machine/${params.id}`)}
@@ -246,7 +246,7 @@ const Invoices = () => {
       filterable: false,
       sortable: false,
       renderCell: (params) => {
-        if (userRole === "admin") {
+        if (userRole === "admin" || userRole === "superadmin") {
           return (
             <IconButton
               onClick={() => confirmDelete(params.id, params.row.machineId)}

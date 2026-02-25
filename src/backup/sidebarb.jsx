@@ -20,6 +20,8 @@ import {
 import logo from "../../../assets/images/logo.png";
 import Item from "./Item";
 import { ToggledContext } from "../../../App";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchSideMenus } from "../../../store/sidemenuSlice";
 
 const SideBar = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -31,6 +33,13 @@ const SideBar = () => {
   const [openSupAdReports, setOpenSupAdReports] = useState(false);
 
   const [userRole, setUserRole] = useState(null);
+
+  const dispatch = useDispatch();
+  const { menus, loading } = useSelector((state) => state.sidemenu);
+
+  useEffect(() => {
+    dispatch(fetchSideMenus());
+  }, [dispatch]);
 
   useEffect(() => {
     // Read the user role from localStorage
@@ -149,17 +158,13 @@ const SideBar = () => {
             icon={<ContactsOutlined />}
           />
         </Menu>
-
-        {(userRole === "admin" || userRole === "superadmin" || userRole === "user") && (
-          <Typography
-            variant="h6"
-            color={colors.gray[300]}
-            sx={{ m: "15px 0 5px 20px" }}
-          >
-            {!collapsed ? "Reports" : " "}
-          </Typography>
-        )}
-
+        <Typography
+          variant="h6"
+          color={colors.gray[300]}
+          sx={{ m: "15px 0 5px 20px" }}
+        >
+          {!collapsed ? "Reports" : " "}
+        </Typography>{" "}
         <Menu
           menuItemStyles={{
             button: {
@@ -171,9 +176,18 @@ const SideBar = () => {
             },
           }}
         >
+          {/* {userRole === "admin" && (
+            <Item
+              title="Organisational Reports"
+              path="/reports"
+              colors={colors}
+              icon={<ContactsOutlined />}
+            />
+          )} */}
 
-          {/* {(userRole === "admin" || userRole === "superadmin") && (
+          {userRole === "admin" && (
             <>
+              {/* PARENT MENU */}
               <Box
                 onClick={() => setOpenOrgReports(!openOrgReports)}
                 sx={{
@@ -209,6 +223,7 @@ const SideBar = () => {
                 )}
               </Box>
 
+              {/* CHILD MENU */}
               {openOrgReports && (
                 <Box ml="15px">
                   <Item
@@ -234,10 +249,11 @@ const SideBar = () => {
                 </Box>
               )}
             </>
-          )}  */}
+          )}
 
-          {/* {(userRole === "admin" || userRole === "superadmin") && (
+          {(userRole === "admin" || userRole === "user") && (
             <>
+              {/* PARENT MENU */}
               <Box
                 onClick={() => setOpenPesReports(!openPesReports)}
                 sx={{
@@ -273,6 +289,7 @@ const SideBar = () => {
                 )}
               </Box>
 
+              {/* CHILD MENU */}
               {openPesReports && (
                 <Box ml="15px">
                   <Item
@@ -298,10 +315,11 @@ const SideBar = () => {
                 </Box>
               )}
             </>
-          )} */}
+          )}
 
-          {/* {(userRole === "superadmin") && (
+          {(userRole === "superadmin") && (
             <>
+              {/* PARENT MENU */}
               <Box
                 onClick={() => setOpenSupAdReports(!openSupAdReports)}
                 sx={{
@@ -337,6 +355,7 @@ const SideBar = () => {
                 )}
               </Box>
 
+              {/* CHILD MENU */}
               {openSupAdReports && (
                 <Box ml="15px">
                   <Item
@@ -345,58 +364,43 @@ const SideBar = () => {
                     colors={colors}
                     icon={<BarChartOutlinedIcon fontSize="small" />}
                   />
+
+                  {/* <Item
+                    title="State Wise Report"
+                    path="/reports/state_district_wise_dispense"
+                    colors={colors}
+                    icon={<PieChartOutlineIcon fontSize="small" />}
+                  />
+
+                  <Item
+                    title="Average Consumption Report"
+                    path="/reports/avg_consumption_comparison"
+                    colors={colors}
+                    icon={<PieChartOutlineIcon fontSize="small" />}
+                  /> */}
                 </Box>
               )}
             </>
-          )} */}
+          )}
 
-          {(userRole === "superadmin" || userRole === "admin" || userRole === "user") && (
+          {userRole === "admin" && (
             <Item
-              title="Dispense Report"
-              path="/reports/dispense_report"
+              title="Saved Reports"
+              path="/saved-reports"
               colors={colors}
               icon={<ContactsOutlined />}
             />
           )}
-
           {userRole === "superadmin" && (
             <Item
-              title="Last Activity Report"
-              path="/reports/last_activity_report"
-              colors={colors}
-              icon={<ContactsOutlined />}
-            />
-          )}
-
-          {(userRole === "superadmin") && (
-            <Item
-             title={"My Reports"}
-              path="/saved-reports/superadmin"
-              colors={colors}
-              icon={<ContactsOutlined />}
-            />
-          )}
-
-          {(userRole === "admin" || userRole === "superadmin") && (
-            <Item
-             title={userRole === "superadmin" ? "Admin Reports" : userRole === "admin" ? "My Reports" : "Saved Reports"}
-              path="/saved-reports/admin"
-              colors={colors}
-              icon={<ContactsOutlined />}
-            />
-          )}
-
-          {(userRole === "admin" || userRole === "superadmin" || userRole === "user") && (
-            <Item
-              title={"Custom Reports"}
-              path="/saved-reports/user"
+              title="Super Admin Reports"
+              path="/refillingHistory"
               colors={colors}
               icon={<ContactsOutlined />}
             />
           )}
         </Menu>
-
-        {(userRole === "admin" || userRole === "superadmin") && (
+        {userRole === "admin" && (
           <>
             <Typography
               variant="h6"
@@ -455,7 +459,7 @@ const SideBar = () => {
             </Menu>
           </>
         )}
-        {(userRole === "admin" || userRole === "superadmin") && (
+        {userRole === "admin" && (
           <>
             <Typography
               variant="h6"

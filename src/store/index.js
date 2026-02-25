@@ -12,6 +12,11 @@ import dashboardReducer from './dashboardSlice';
 import geolocationReducer from './geolocationSlice';
 import notificationSlice from './notificationSlice';
 import ngoSpoc from './ngoSpocSlice'
+import manualPads from './manualPadsSlice';
+import sidemenuReducer from './sidemenuSlice';
+import roleReducer from './roleSlice';
+import reportsReducer from "./reportsSlice"; 
+
 const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -20,13 +25,17 @@ const store = configureStore({
     vendingMaster: vendingMasterReducer,
     school: schoolReducer,
     allocationMaster: allocationMasterReducer,
-    userEdit: registerReducer,  
+    userEdit: registerReducer,
     getVendingMachine: vendingMachineReducer,
     user: userReducer,
     dashboard: dashboardReducer,
     geolocation: geolocationReducer,
     notification: notificationSlice,
-    ngoSpoc: ngoSpoc
+    ngoSpoc: ngoSpoc,
+    manualPads: manualPads,
+    sidemenu: sidemenuReducer,
+    role: roleReducer,
+    reports: reportsReducer, 
   },
 });
 

@@ -130,19 +130,6 @@ const RegisterForm = () => {
                       gridColumn: "span 4",
                     }}
                   />
-                  {/* <TextField
-                fullWidth
-                variant="filled"
-                type="text"
-                label="Last Name"
-                onBlur={handleBlur}
-                onChange={handleChange}
-                // value={values.lastName}
-                name="lastName"
-                error={touched.lastName && errors.lastName}
-                helperText={touched.lastName && errors.lastName}
-                sx={{ gridColumn: "span 2" }}
-              /> */}
                   <TextField
                     fullWidth
                     variant="filled"
@@ -185,26 +172,26 @@ const RegisterForm = () => {
                   >
                     {loading ? <CircularProgress size={24} /> : "Register"}
                   </Button>
-                  
+
                 </Box>
               </form>
             )}
           </Formik>
 
           <Typography
-                    variant="body2"
-                    color="textSecondary"
-                    textAlign="center"
-                    mt={2}
-                  >
-                    Already Registered?{" "}
-                    <span
-                      onClick={handleNavigateToRegister}
-                      style={{ color: "#4cceac", cursor: "pointer" }}
-                    >
-                      Login here
-                    </span>
-                  </Typography>
+            variant="body2"
+            color="textSecondary"
+            textAlign="center"
+            mt={2}
+          >
+            Already Registered?{" "}
+            <span
+              onClick={handleNavigateToRegister}
+              style={{ color: "#4cceac", cursor: "pointer" }}
+            >
+              Login here
+            </span>
+          </Typography>
 
           {/* Snackbar to show success or error message */}
           {successMessage && (
