@@ -379,7 +379,7 @@ const Invoices = () => {
           initialState={{
             pagination: {
               paginationModel: {
-                pageSize: 10,
+                pageSize: 100,
               },
             },
           }}

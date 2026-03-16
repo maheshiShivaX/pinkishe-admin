@@ -38,6 +38,7 @@ import AvgConsumptionComparisonReport from "./scenes/organisationalReports/AvgCo
 import MachineWiseDispenseRefill from "./scenes/reports/MachineWiseDispenseRefill";
 import LastActivityReport from "./scenes/reports/LastActivityReports";
 import DispenseReport from "./scenes/reports/DispenseReport";
+import StandardReports from "./scenes/reports/StandardReports";
 
 const AppRouter = () => {
   return (
@@ -258,6 +259,15 @@ const AppRouter = () => {
             element={
               <PrivateRoute>
                 <SavedReports />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/reports/standard_reports"
+            element={
+              <PrivateRoute>
+                <StandardReports />
               </PrivateRoute>
             }
           />

@@ -215,17 +215,17 @@ const ManualPadDistribute = () => {
         { field: "eventStartDate", headerName: "Event Start Date", flex: 1 },
         { field: "eventEndDate", headerName: "Event End Date", flex: 1 },
         { field: "remark", headerName: "Message", flex: 1 },
-        {
-            field: "edit",
-            headerName: "",
-            filterable: false,
-            sortable: false,
-            renderCell: (params) => (
-                <IconButton onClick={() => handleEdit(params.row)}>
-                    <EditOutlined />
-                </IconButton>
-            ),
-        },
+        // {
+        //     field: "edit",
+        //     headerName: "",
+        //     filterable: false,
+        //     sortable: false,
+        //     renderCell: (params) => (
+        //         <IconButton onClick={() => handleEdit(params.row)}>
+        //             <EditOutlined />
+        //         </IconButton>
+        //     ),
+        // },
         {
             field: "delete",
             headerName: "",
@@ -465,11 +465,11 @@ const ManualPadDistribute = () => {
                             componentsProps={{ toolbar: { filterModel } }}
                             filterModel={filterModel}
                             onFilterModelChange={(model) => setFilterModel(model)}
-                            pageSizeOptions={[10, 25, 50]}
+                            pageSizeOptions={[10, 25, 50,100]}
                             initialState={{
                                 pagination: {
                                     paginationModel: {
-                                        pageSize: 10,
+                                        pageSize: 100,
                                     },
                                 },
                             }}

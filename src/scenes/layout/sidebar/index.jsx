@@ -20,6 +20,7 @@ import {
 import logo from "../../../assets/images/logo.png";
 import Item from "./Item";
 import { ToggledContext } from "../../../App";
+import StandardReports from "../../reports/StandardReports";
 
 const SideBar = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -368,32 +369,41 @@ const SideBar = () => {
             />
           )}
 
-          {(userRole === "superadmin") && (
+          {(userRole === "admin" || userRole === "superadmin" || userRole === "user")  && (
             <Item
-             title={"My Reports"}
-              path="/saved-reports/superadmin"
+              title={"My Reports"}
+              path="/saved-reports/my_reports"
               colors={colors}
               icon={<ContactsOutlined />}
             />
           )}
 
-          {(userRole === "admin" || userRole === "superadmin") && (
+          {/* {(userRole === "admin" || userRole === "superadmin") && (
             <Item
-             title={userRole === "superadmin" ? "Admin Reports" : userRole === "admin" ? "My Reports" : "Saved Reports"}
+              title={userRole === "superadmin" ? "Admin Reports" : userRole === "admin" ? "My Reports" : "Saved Reports"}
               path="/saved-reports/admin"
               colors={colors}
               icon={<ContactsOutlined />}
             />
-          )}
+          )} */}
 
-          {(userRole === "admin" || userRole === "superadmin" || userRole === "user") && (
+           {(userRole === "admin" || userRole === "superadmin" || userRole === "user") && (
+            <Item
+              title={"Standard Reports"}
+              path="/reports/standard_reports"
+              colors={colors}
+              icon={<ContactsOutlined />}
+            />
+          )} 
+
+         {(userRole === "admin" || userRole === "superadmin") && (
             <Item
               title={"Custom Reports"}
               path="/saved-reports/user"
               colors={colors}
               icon={<ContactsOutlined />}
             />
-          )}
+          )} 
         </Menu>
 
         {(userRole === "admin" || userRole === "superadmin") && (

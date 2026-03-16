@@ -82,14 +82,27 @@ const Contacts = () => {
   const [presetRange, setPresetRange] = useState("");
 
   const navigate = useNavigate();
+
+  // const [filterModel, setFilterModel] = useState({
+  //   items: [],
+  //   logicOperator: "and",
+  // });
+
   const [filterModel, setFilterModel] = useState({
-    items: [],
+    items: [
+      {
+        field: "machineId",
+        operator: "contains",
+        value: "",
+      },
+    ],
     logicOperator: "and",
   });
+
   const [debouncedFilter, setDebouncedFilter] = useState(filterModel);
 
   const [page, setPage] = useState(0); // MUI uses 0-based index
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(100);
 
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
@@ -236,11 +249,46 @@ const Contacts = () => {
           "School Spoc",
           "NGO Spoc",
           "Status Indicator", // ✅ New column
-          "ManualPads"
+          // "ManualPads"
         ];
+
+        // const csvRows = [
+        //   headers.join(","),
+        //   ...rows.map((row) =>
+        //     [
+        //       row.id,
+        //       row.machineId,
+        //       formatDate1(row.createdAt),
+        //       row.itemsDispensed,
+        //       row.stock,
+        //       row.school?.schoolName || "",
+        //       row.school?.state || "",
+        //       row.school?.schoolDistrict || "",
+        //       row.school?.schoolBlock || "",
+        //       row.school?.schoolSpocName || "",
+        //       row.school?.ngoSpocName || "",
+        //       row.statusIndicator || "", // ✅ Include field from API
+        //       row.manualPads || "",
+        //     ]
+        //       .map((val) => `"${val}"`)
+        //       .join(",")
+        //   ),
+        // ];
+
+        let totalDispensed = 0;
+        let totalManualPads = 0;
+
+        rows.forEach((row) => {
+          if (row.event_type === 4 || row.event_type === "4") {
+            totalManualPads += Number(row.manualPads || 0);
+          } else {
+            totalDispensed += Number(row.itemsDispensed || 0);
+          }
+        });
 
         const csvRows = [
           headers.join(","),
+
           ...rows.map((row) =>
             [
               row.id,
@@ -254,12 +302,33 @@ const Contacts = () => {
               row.school?.schoolBlock || "",
               row.school?.schoolSpocName || "",
               row.school?.ngoSpocName || "",
-              row.statusIndicator || "", // ✅ Include field from API
-              row.manualPads || "",
+              row.statusIndicator || ""
+              // row.manualPads || "",
             ]
               .map((val) => `"${val}"`)
               .join(",")
           ),
+
+          // 🔥 Empty row
+          "",
+
+          // 🔥 Totals row
+          [
+            "",
+            "",
+            "Total (Exclude Manual Pads)",
+            totalDispensed,
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Total Manual Pads",
+            totalManualPads,
+          ]
+            .map((val) => `"${val}"`)
+            .join(","),
         ];
 
         // const blob = new Blob([csvRows.join("\n")], {
@@ -306,7 +375,18 @@ const Contacts = () => {
 
     { field: "createdAt", headerName: "Date", flex: 1 },
     { field: "itemsDispensed", headerName: "Pads Dispensed", flex: 1 },
-    { field: "stock", headerName: "Remaining Stock", flex: 1 },
+    // { field: "stock", headerName: "Remaining Stock", flex: 1 },
+    {
+      field: "stock",
+      headerName: "Remaining Stock",
+      flex: 1,
+      renderCell: (params) => {
+        if (params.row?.event_type === 4 || params.row?.event_type === "4") {
+          return "-";
+        }
+        return params.value;
+      },
+    },
     {
       field: "schoolName",
       headerName: "School Name",
@@ -605,6 +685,7 @@ const Contacts = () => {
             setPage(page);
             setPageSize(pageSize);
           }}
+          // pageSizeOptions={[10, 25, 50, 100]}
           pageSizeOptions={[10, 25, 50, 100]}
           filterModel={filterModel}
           onFilterModelChange={(newModel) => {

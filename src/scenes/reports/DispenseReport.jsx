@@ -84,6 +84,7 @@ const DispenseReport = () => {
     const [openSave, setOpenSave] = useState(false);
     const [reportName, setReportName] = useState("");
     const [description, setDescription] = useState("");
+    const [reportSavedType, setReportSavedType] = useState("my_reports");
 
     /* =========================
          FETCH SAVED REPORT
@@ -127,22 +128,83 @@ const DispenseReport = () => {
     /* =========================
        SAVE / UPDATE
        ========================= */
+    // const handleSaveOrUpdate = async (values) => {
+    //     if (!reportName) return;
+
+    //     const payload = {
+    //         token,
+    //         reportName,
+    //         description,
+    //         filters: values,
+    //         reportCategory: reportType,   // ✅ send to backend
+    //     };
+
+    //     try {
+    //         if (reportId) {
+    //             await dispatch(
+    //                 updateSavedReport({ ...payload, summary, id: reportId })
+    //             ).unwrap();
+    //             // ✅ SUCCESS MESSAGE (UPDATE)
+    //             dispatch(
+    //                 showNotification({
+    //                     message: "Report updated successfully!",
+    //                     type: "success",
+    //                 })
+    //             );
+    //         } else {
+    //             await dispatch(
+    //                 saveReport({
+    //                     ...payload,
+    //                     reportType: "dispense_report",
+    //                     summary,
+    //                 })
+    //             ).unwrap();
+    //             // ✅ SUCCESS MESSAGE (UPDATE)
+    //             dispatch(
+    //                 showNotification({
+    //                     message: "Report saved successfully!",
+    //                     type: "success",
+    //                 })
+    //             );
+    //         }
+
+    //         setOpenSave(false);
+    //         // navigate("/saved-reports"); // ✅ SUCCESS ke baad navigate
+
+    //     } catch (error) {
+    //         console.error("Save/Update failed:", error);
+    //         // ❌ ERROR MESSAGE
+    //         dispatch(
+    //             showNotification({
+    //                 message: "Failed to save report. Please try again.",
+    //                 type: "error",
+    //             })
+    //         );
+    //     }
+    // };
+
     const handleSaveOrUpdate = async (values) => {
         if (!reportName) return;
 
+        const savedType =
+            role === "admin" ? reportSavedType : "my_reports";
+
         const payload = {
             token,
+            reportType: 1, // ✅ Dispense Report ID
+            reportSavedType: savedType,
             reportName,
             description,
             filters: values,
+            summary,
         };
 
         try {
             if (reportId) {
                 await dispatch(
-                    updateSavedReport({ ...payload, summary, id: reportId })
+                    updateSavedReport({ ...payload, id: reportId })
                 ).unwrap();
-                // ✅ SUCCESS MESSAGE (UPDATE)
+
                 dispatch(
                     showNotification({
                         message: "Report updated successfully!",
@@ -150,14 +212,8 @@ const DispenseReport = () => {
                     })
                 );
             } else {
-                await dispatch(
-                    saveReport({
-                        ...payload,
-                        reportType: "dispense_report",
-                        summary,
-                    })
-                ).unwrap();
-                // ✅ SUCCESS MESSAGE (UPDATE)
+                await dispatch(saveReport(payload)).unwrap();
+
                 dispatch(
                     showNotification({
                         message: "Report saved successfully!",
@@ -167,11 +223,7 @@ const DispenseReport = () => {
             }
 
             setOpenSave(false);
-            // navigate("/saved-reports"); // ✅ SUCCESS ke baad navigate
-
         } catch (error) {
-            console.error("Save/Update failed:", error);
-            // ❌ ERROR MESSAGE
             dispatch(
                 showNotification({
                     message: "Failed to save report. Please try again.",
@@ -364,6 +416,12 @@ const DispenseReport = () => {
                 </Button>
             </GridToolbarContainer>
         );
+    };
+
+    const formatReportType = (text) => {
+        return text
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, (char) => char.toUpperCase());
     };
 
     // { dispenseReportLoading ? <CircularProgress /> : <DataGrid ... /> }
@@ -626,6 +684,44 @@ const DispenseReport = () => {
                                             sx: { color: "#bbb", textAlign: "right" },
                                         }}
                                     />
+
+                                    {role === "admin" && (
+                                        <TextField
+                                            select
+                                            fullWidth
+                                            label="Report Type"
+                                            value={reportSavedType}
+                                            onChange={(e) => setReportSavedType(e.target.value)}
+                                            variant="outlined"
+                                            InputLabelProps={{
+                                                sx: {
+                                                    color: "#bbb",
+                                                    "&.Mui-focused": { color: "#fff" },
+                                                    "&.MuiInputLabel-shrink": { color: "#fff" },
+                                                },
+                                            }}
+                                            InputProps={{
+                                                sx: {
+                                                    color: "#fff",
+                                                    "& .MuiOutlinedInput-notchedOutline": {
+                                                        borderColor: "#777",
+                                                    },
+                                                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                                                        borderColor: "#aaa",
+                                                    },
+                                                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                                        borderColor: "#4caf50",
+                                                    },
+                                                },
+                                            }}
+                                        >
+                                            {["my_reports", "standard_report"].map((type) => (
+                                                <MenuItem key={type} value={type}>
+                                                    {formatReportType(type)}
+                                                </MenuItem>
+                                            ))}
+                                        </TextField>
+                                    )}
                                 </DialogContent>
 
                                 <DialogActions sx={{ px: 3, pb: 2 }}>

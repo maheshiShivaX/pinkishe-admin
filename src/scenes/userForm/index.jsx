@@ -240,7 +240,8 @@ const UserForm = () => {
                     {/* ✅ Always show current role first (for edit mode) */}
                     {values.role && (
                       <MenuItem value={values.role}>
-                        {values.role.toUpperCase()}
+                        {/* {values.role.toUpperCase()} */}
+                        {values.role.charAt(0).toUpperCase() + values.role.slice(1).toLowerCase()}
                       </MenuItem>
                     )}
 

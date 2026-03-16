@@ -88,7 +88,7 @@ const RefillingHistory = () => {
   });
 
   const [page, setPage] = useState(0); // MUI uses 0-based index
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(100);
 
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);

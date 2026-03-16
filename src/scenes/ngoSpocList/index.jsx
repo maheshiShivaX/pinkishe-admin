@@ -194,10 +194,10 @@ const NgoSpocList = () => {
             rows={rows}
             columns={columns}
             components={{ Toolbar: GridToolbar }}
-            pageSizeOptions={[10, 25, 50]}
+            pageSizeOptions={[10, 25, 50,100]}
             initialState={{
               pagination: {
-                paginationModel: { pageSize: 10 },
+                paginationModel: { pageSize: 100 },
               },
             }}
             getRowId={(row) => row.id}

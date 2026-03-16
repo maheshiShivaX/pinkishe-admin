@@ -38,6 +38,10 @@ const initialState = {
     savedReportsLoading: false,
     savedReportsError: null,
 
+    standardReports: [],
+    standardReportsLoading: false,
+    standardReportsError: null,
+
     saveReportLoading: false,
     saveReportError: null,
 
@@ -225,30 +229,64 @@ export const fetchMachineWiseDispenseRefill = createAsyncThunk(
 /* =========================
    SAVE REPORT
 ========================= */
+// export const saveReport = createAsyncThunk(
+//     "reports/saveReport",
+//     async (
+//         { token, reportType, reportName, description, filters, summary },
+//         { rejectWithValue }
+//     ) => {
+//         try {
+//             const response = await fetch(
+//                 `${config.apiUrl}/api/reports/save`,
+//                 {
+//                     method: "POST",
+//                     headers: {
+//                         "Content-Type": "application/json",
+//                         Authorization: `Bearer ${token}`,
+//                     },
+//                     body: JSON.stringify({
+//                         reportType,
+//                         reportName,
+//                         description,
+//                         filters,
+//                         summary,
+//                     }),
+//                 }
+//             );
+
+//             const data = await response.json();
+//             if (!response.ok) throw new Error(data.message);
+
+//             return data;
+//         } catch (error) {
+//             return rejectWithValue(error.message);
+//         }
+//     }
+// );
+
+
 export const saveReport = createAsyncThunk(
     "reports/saveReport",
     async (
-        { token, reportType, reportName, description, filters, summary },
+        { token, reportType, reportSavedType, reportName, description, filters, summary },
         { rejectWithValue }
     ) => {
         try {
-            const response = await fetch(
-                `${config.apiUrl}/api/reports/save`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        reportType,
-                        reportName,
-                        description,
-                        filters,
-                        summary,
-                    }),
-                }
-            );
+            const response = await fetch(`${config.apiUrl}/api/reports/save`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    reportType,
+                    reportSavedType,
+                    reportName,
+                    description,
+                    filters,
+                    summary,
+                }),
+            });
 
             const data = await response.json();
             if (!response.ok) throw new Error(data.message);
@@ -277,6 +315,40 @@ export const fetchSavedReports = createAsyncThunk(
             if (!response.ok) throw new Error(data.message);
 
             return data.data;
+        } catch (error) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+export const fetchStandardReports = createAsyncThunk(
+    "reports/fetchStandardReports",
+    async ({ token, role, reportSavedType }, { rejectWithValue }) => {
+        try {
+
+            const response = await fetch(
+                `${config.apiUrl}/api/reports/getStandardReports`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        role,
+                        reportSavedType
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Failed to fetch standard reports");
+            }
+
+            return data.data;
+
         } catch (error) {
             return rejectWithValue(error.message);
         }
@@ -536,6 +608,23 @@ const reportsSlice = createSlice({
             .addCase(fetchSavedReports.rejected, (state, action) => {
                 state.savedReportsLoading = false;
                 state.savedReportsError = action.payload;
+            })
+
+            /* -------- Standard Reports -------- */
+            .addCase(fetchStandardReports.pending, (state) => {
+                state.standardReportsLoading = true;
+            })
+            .addCase(fetchStandardReports.fulfilled, (state, action) => {
+                state.standardReportsLoading = false;
+
+                state.standardReports = action.payload.map((r) => ({
+                    ...r,
+                    reportType: r.report_type
+                }));
+            })
+            .addCase(fetchStandardReports.rejected, (state, action) => {
+                state.standardReportsLoading = false;
+                state.standardReportsError = action.payload;
             })
 
             .addCase(deleteSavedReport.pending, (state) => {
