@@ -94,10 +94,16 @@ const Contacts = () => {
   const [presetRange, setPresetRange] = useState("");
 
   const [filterModel, setFilterModel] = useState({
-    items: [],
+    items: [
+      {
+        id: 1,
+        field: "machineId",
+        operator: "equals",
+        value: "",
+      },
+    ],
     logicOperator: "and",
   });
-
   const [debouncedFilter, setDebouncedFilter] = useState(filterModel);
 
   const [page, setPage] = useState(0); // MUI 0-based
@@ -178,117 +184,117 @@ const Contacts = () => {
     return dayjs(date).format("YYYY-MM-DD");
   };
 
-const handleExport = async () => {
-  if (!token) return;
+  const handleExport = async () => {
+    if (!token) return;
 
-  try {
-    const filters = (debouncedFilter.items || [])
-      .filter(
-        (item) =>
-          item?.value !== undefined &&
-          item?.value !== null &&
-          item?.value !== ""
-      )
-      .map((item) => ({
-        field: item.field,
-        operator: item.operator || "contains",
-        value: item.value,
-      }));
+    try {
+      const filters = (debouncedFilter.items || [])
+        .filter(
+          (item) =>
+            item?.value !== undefined &&
+            item?.value !== null &&
+            item?.value !== ""
+        )
+        .map((item) => ({
+          field: item.field,
+          operator: item.operator || "contains",
+          value: item.value,
+        }));
 
-    const resultAction = await dispatch(
-      getDispenseHistoryExportData({
-        token,
-        startDate: formatDateForAPI(startDate),
-        endDate: formatDateForAPI(endDate),
-        filters,
-      })
-    );
+      const resultAction = await dispatch(
+        getDispenseHistoryExportData({
+          token,
+          startDate: formatDateForAPI(startDate),
+          endDate: formatDateForAPI(endDate),
+          filters,
+        })
+      );
 
-    if (getDispenseHistoryExportData.fulfilled.match(resultAction)) {
-      const rows = resultAction.payload.data || [];
+      if (getDispenseHistoryExportData.fulfilled.match(resultAction)) {
+        const rows = resultAction.payload.data || [];
 
-      const headers = [
-        "Dispense ID",
-        "Machine ID",
-        "Date",
-        "Pads Dispensed",
-        "Remaining Stock",
-        "School Name",
-        "State",
-        "District",
-        "Block",
-        "School Spoc",
-        "NGO Spoc",
-        "Status Indicator",
-      ];
+        const headers = [
+          "Dispense ID",
+          "Machine ID",
+          "Date",
+          "Pads Dispensed",
+          "Remaining Stock",
+          "School Name",
+          "State",
+          "District",
+          "Block",
+          "School Spoc",
+          "NGO Spoc",
+          "Status Indicator",
+        ];
 
-      let totalDispensed = 0;
-      let totalManualPads = 0;
+        let totalDispensed = 0;
+        let totalManualPads = 0;
 
-      rows.forEach((row) => {
-        if (row.event_type === 4 || row.event_type === "4") {
-          totalManualPads += Number(row.manualPads || 0);
-        } else {
-          totalDispensed += Number(row.itemsDispensed || 0);
-        }
-      });
+        rows.forEach((row) => {
+          if (row.event_type === 4 || row.event_type === "4") {
+            totalManualPads += Number(row.manualPads || 0);
+          } else {
+            totalDispensed += Number(row.itemsDispensed || 0);
+          }
+        });
 
-      const csvRows = [
-        headers.join(","),
-        ...rows.map((row) =>
+        const csvRows = [
+          headers.join(","),
+          ...rows.map((row) =>
+            [
+              row.id,
+              row.machineId,
+              formatDate1(row.createdAt),
+              row.itemsDispensed,
+              row.event_type === 4 || row.event_type === "4" ? "-" : row.stock,
+              row.school?.schoolName || "",
+              row.school?.state || "",
+              row.school?.schoolDistrict || "",
+              row.school?.schoolBlock || "",
+              row.school?.schoolSpocName || "",
+              row.school?.ngoSpocName || "",
+              row.statusIndicator || "",
+            ]
+              .map((val) => `"${val ?? ""}"`)
+              .join(",")
+          ),
+          "",
           [
-            row.id,
-            row.machineId,
-            formatDate1(row.createdAt),
-            row.itemsDispensed,
-            row.event_type === 4 || row.event_type === "4" ? "-" : row.stock,
-            row.school?.schoolName || "",
-            row.school?.state || "",
-            row.school?.schoolDistrict || "",
-            row.school?.schoolBlock || "",
-            row.school?.schoolSpocName || "",
-            row.school?.ngoSpocName || "",
-            row.statusIndicator || "",
+            "",
+            "",
+            "Total (Exclude Manual Pads)",
+            totalDispensed,
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "Total Manual Pads",
+            totalManualPads,
           ]
-            .map((val) => `"${val ?? ""}"`)
-            .join(",")
-        ),
-        "",
-        [
-          "",
-          "",
-          "Total (Exclude Manual Pads)",
-          totalDispensed,
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "Total Manual Pads",
-          totalManualPads,
-        ]
-          .map((val) => `"${val}"`)
-          .join(","),
-      ];
+            .map((val) => `"${val}"`)
+            .join(","),
+        ];
 
-      const BOM = "\uFEFF";
-      const blob = new Blob([BOM + csvRows.join("\n")], {
-        type: "text/csv;charset=utf-8;",
-      });
+        const BOM = "\uFEFF";
+        const blob = new Blob([BOM + csvRows.join("\n")], {
+          type: "text/csv;charset=utf-8;",
+        });
 
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", "DispenseHistoryData.csv");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", "DispenseHistoryData.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (err) {
+      console.error("Export failed:", err);
     }
-  } catch (err) {
-    console.error("Export failed:", err);
-  }
-};
+  };
 
   const columns = [
     { field: "id", headerName: "Dispense ID", flex: 1 },
@@ -592,7 +598,7 @@ const handleExport = async () => {
             setPage(page);
             setPageSize(pageSize);
           }}
-          pageSizeOptions={[10, 25, 50, 100]}
+          pageSizeOptions={[100]}
           filterModel={filterModel}
           onFilterModelChange={(newModel) => {
             setFilterModel(newModel);

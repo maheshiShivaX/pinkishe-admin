@@ -156,54 +156,109 @@ export const fetchDispenseHistoryForMachineId = createAsyncThunk(
 // );
 
 // Thunk to fetch refilling history from API
+// export const fetchRefillingHistory = createAsyncThunk(
+//   'dispense/fetchRefillingHistory',
+//   async ({ token, page, pageSize, startDate, endDate, filters } = {}) => {
+//     let url = `${config.apiUrl}/api/getRefillingHistory?`;
+
+//     // Pagination
+//     if (page !== undefined) url += `page=${page}&`;
+//     if (pageSize !== undefined) url += `pageSize=${pageSize}&`;
+
+//     // Date filters
+//     if (startDate) {
+//       const d = new Date(startDate);
+//       url += `startDate=${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}&`;
+//     }
+
+//     if (endDate) {
+//       const d = new Date(endDate);
+//       url += `endDate=${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}&`;
+//     }
+
+//     // Additional filters
+//     if (filters) {
+//       Object.keys(filters).forEach((key) => {
+//         if (filters[key] !== undefined && filters[key] !== null) {
+//           url += `${encodeURIComponent(key)}=${encodeURIComponent(filters[key])}&`;
+//         }
+//       });
+//     }
+
+//     // Trim trailing "&" or "?"
+//     url = url.replace(/[&?]$/, "");
+
+//     const response = await fetch(url, {
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//       },
+//     });
+
+//     const data = await response.json();
+
+//     if (!response.ok) {
+//       throw new Error(data.message || 'Failed to fetch refilling history');
+//     }
+
+//     return {
+//       data: data.data,
+//       total: data.total,
+//     };
+//   }
+// );
+
 export const fetchRefillingHistory = createAsyncThunk(
-  'dispense/fetchRefillingHistory',
-  async ({ token, page, pageSize, startDate, endDate, filters } = {}) => {
-    let url = `${config.apiUrl}/api/getRefillingHistory?`;
+  "dispense/fetchRefillingHistory",
+  async (
+    { token, page = 1, pageSize = 100, startDate, endDate, filters } = {},
+    thunkAPI
+  ) => {
+    try {
+      let url = `${config.apiUrl}/api/getRefillingHistory?page=${page}&pageSize=${pageSize}`;
 
-    // Pagination
-    if (page !== undefined) url += `page=${page}&`;
-    if (pageSize !== undefined) url += `pageSize=${pageSize}&`;
+      const queryParams = [];
 
-    // Date filters
-    if (startDate) {
-      const d = new Date(startDate);
-      url += `startDate=${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}&`;
-    }
+      if (startDate) {
+        const d = new Date(startDate);
+        queryParams.push(
+          `startDate=${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+        );
+      }
 
-    if (endDate) {
-      const d = new Date(endDate);
-      url += `endDate=${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}&`;
-    }
+      if (endDate) {
+        const d = new Date(endDate);
+        queryParams.push(
+          `endDate=${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+        );
+      }
 
-    // Additional filters
-    if (filters) {
-      Object.keys(filters).forEach((key) => {
-        if (filters[key] !== undefined && filters[key] !== null) {
-          url += `${encodeURIComponent(key)}=${encodeURIComponent(filters[key])}&`;
-        }
+      if (filters?.length) {
+        queryParams.push(`filters=${encodeURIComponent(JSON.stringify(filters))}`);
+      }
+
+      if (queryParams.length) {
+        url += `&${queryParams.join("&")}`;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch refilling history");
+      }
+
+      return {
+        data: data.data || [],
+        total: data.total || 0,
+      };
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message);
     }
-
-    // Trim trailing "&" or "?"
-    url = url.replace(/[&?]$/, "");
-
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Failed to fetch refilling history');
-    }
-
-    return {
-      data: data.data,
-      total: data.total,
-    };
   }
 );
 
@@ -299,6 +354,7 @@ const dispenseSlice = createSlice({
       // ✅ Fetch refilling history
       .addCase(fetchRefillingHistory.pending, (state) => {
         state.refillingLoading = true;
+        state.refillingError = null;
       })
       .addCase(fetchRefillingHistory.fulfilled, (state, action) => {
         state.refillingLoading = false;
@@ -306,16 +362,16 @@ const dispenseSlice = createSlice({
       })
       .addCase(fetchRefillingHistory.rejected, (state, action) => {
         state.refillingLoading = false;
-        state.refillingError = action.error.message;
+        state.refillingError = action.payload || action.error.message;
       })
 
       // ✅ Handling the fetchRefillingHistoryExportData actions
       .addCase(fetchRefillingHistoryExportData.pending, (state) => {
-        state.exportRefillingLoading = false;
+        state.exportRefillingLoading = true;
+        state.exportRefillingError = null;
       })
       .addCase(fetchRefillingHistoryExportData.fulfilled, (state, action) => {
         state.exportRefillingLoading = false;
-        // Store export data separately so it doesn't overwrite main list
         state.exportRefillingDetails = action.payload;
       })
       .addCase(fetchRefillingHistoryExportData.rejected, (state, action) => {
