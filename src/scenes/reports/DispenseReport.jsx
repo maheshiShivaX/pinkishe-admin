@@ -186,8 +186,7 @@ const DispenseReport = () => {
     const handleSaveOrUpdate = async (values) => {
         if (!reportName) return;
 
-        const savedType =
-            role === "admin" ? reportSavedType : "my_reports";
+        const savedType = role === "admin" ? reportSavedType : "my_reports";
 
         const payload = {
             token,

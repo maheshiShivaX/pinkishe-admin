@@ -264,6 +264,15 @@ const AppRouter = () => {
           />
 
           <Route
+            path="/reports/my_reports"
+            element={
+              <PrivateRoute>
+                <SavedReports />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
             path="/reports/standard_reports"
             element={
               <PrivateRoute>

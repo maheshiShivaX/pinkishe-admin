@@ -27,35 +27,53 @@ const initialState = {
 
 export const fetchDispenseHistory = createAsyncThunk(
   "dispense/fetchDispenseHistory",
-  async ({ token, page = 1, pageSize = 10, startDate, endDate, filters } = {}) => {
-    let url = `${config.apiUrl}/api/getDispenseHistory?page=${page}&pageSize=${pageSize}&`;
+  async ({ token, page = 1, pageSize = 10, startDate, endDate, filters } = {}, thunkAPI) => {
+    try {
+      let url = `${config.apiUrl}/api/getDispenseHistory?page=${page}&pageSize=${pageSize}`;
 
-    // Date filters only if provided
-    if (startDate) {
-      const d = new Date(startDate);
-      url += `startDate=${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}&`;
+      const queryParams = [];
+
+      if (startDate) {
+        const d = new Date(startDate);
+        queryParams.push(
+          `startDate=${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+        );
+      }
+
+      if (endDate) {
+        const d = new Date(endDate);
+        queryParams.push(
+          `endDate=${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+        );
+      }
+
+      if (filters?.length) {
+        queryParams.push(`filters=${encodeURIComponent(JSON.stringify(filters))}`);
+      }
+
+      if (queryParams.length) {
+        url += `&${queryParams.join("&")}`;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch dispense history");
+      }
+
+      return {
+        data: data.data || [],
+        total: data.total || 0,
+      };
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message);
     }
-    if (endDate) {
-      const d = new Date(endDate);
-      url += `endDate=${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}&`;
-    }
-
-    // Filters
-    if (filters?.length) {
-      url += `filters=${encodeURIComponent(JSON.stringify(filters))}&`;
-    }
-
-    url = url.replace(/&$/, "");
-
-    const response = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await response.json();
-
-    return {
-      data: data.data || [],
-      total: data.total || 0,
-    };
   }
 );
 
@@ -234,9 +252,9 @@ const dispenseSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Handling the fetchDispenseHistory actions
       .addCase(fetchDispenseHistory.pending, (state) => {
-        state.loading = false;
+        state.loading = true;
+        state.error = null;
       })
       .addCase(fetchDispenseHistory.fulfilled, (state, action) => {
         state.loading = false;
@@ -244,7 +262,7 @@ const dispenseSlice = createSlice({
       })
       .addCase(fetchDispenseHistory.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message;
+        state.error = action.payload || action.error.message;
       })
 
 

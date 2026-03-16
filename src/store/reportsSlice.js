@@ -298,12 +298,37 @@ export const saveReport = createAsyncThunk(
     }
 );
 
+// export const fetchSavedReports = createAsyncThunk(
+//     "reports/fetchSavedReports",
+//     async ({ token, type }, { rejectWithValue }) => {
+//         try {
+//             const response = await fetch(
+//                 `${config.apiUrl}/api/reports/getReports?type=${type}`,
+//                 {
+//                     headers: {
+//                         Authorization: `Bearer ${token}`,
+//                     },
+//                 }
+//             );
+
+//             const data = await response.json();
+//             if (!response.ok) throw new Error(data.message);
+
+//             return data.data;
+//         } catch (error) {
+//             return rejectWithValue(error.message);
+//         }
+//     }
+// );
+
 export const fetchSavedReports = createAsyncThunk(
     "reports/fetchSavedReports",
-    async ({ token, type }, { rejectWithValue }) => {
+    async ({ token, role = null }, { rejectWithValue }) => {
         try {
+            const query = role ? `?role=${encodeURIComponent(role)}` : "";
+
             const response = await fetch(
-                `${config.apiUrl}/api/reports/getReports?type=${type}`,
+                `${config.apiUrl}/api/reports/getReports${query}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -314,7 +339,7 @@ export const fetchSavedReports = createAsyncThunk(
             const data = await response.json();
             if (!response.ok) throw new Error(data.message);
 
-            return data.data;
+            return data.data || [];
         } catch (error) {
             return rejectWithValue(error.message);
         }

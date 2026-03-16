@@ -57,6 +57,14 @@ const LastActivityReport = () => {
             },
         },
         {
+            field: "schoolDistrict",
+            headerName: "District",
+            flex: 2.5,
+            valueGetter: (params) => {
+                return `${params.row.schoolDistrict}`;
+            },
+        },
+        {
             field: "lastDispenseDate",
             headerName: "Last Dispense Date",
             flex: 1.5,

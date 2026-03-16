@@ -369,10 +369,19 @@ const SideBar = () => {
             />
           )}
 
-          {(userRole === "admin" || userRole === "superadmin" || userRole === "user")  && (
+          {(userRole === "admin" || userRole === "superadmin" || userRole === "user") && (
+            <Item
+              title={"Standard Reports"}
+              path="/reports/standard_reports"
+              colors={colors}
+              icon={<ContactsOutlined />}
+            />
+          )}
+
+          {(userRole === "admin" || userRole === "superadmin" || userRole === "user") && (
             <Item
               title={"My Reports"}
-              path="/saved-reports/my_reports"
+              path="/reports/my_reports"
               colors={colors}
               icon={<ContactsOutlined />}
             />
@@ -387,23 +396,14 @@ const SideBar = () => {
             />
           )} */}
 
-           {(userRole === "admin" || userRole === "superadmin" || userRole === "user") && (
-            <Item
-              title={"Standard Reports"}
-              path="/reports/standard_reports"
-              colors={colors}
-              icon={<ContactsOutlined />}
-            />
-          )} 
-
-         {(userRole === "admin" || userRole === "superadmin") && (
+          {(userRole === "admin" || userRole === "superadmin") && (
             <Item
               title={"Custom Reports"}
               path="/saved-reports/user"
               colors={colors}
               icon={<ContactsOutlined />}
             />
-          )} 
+          )}
         </Menu>
 
         {(userRole === "admin" || userRole === "superadmin") && (
