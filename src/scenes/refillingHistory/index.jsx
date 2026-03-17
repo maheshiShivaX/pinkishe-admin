@@ -553,7 +553,7 @@ const RefillingHistory = () => {
             setPage(page);
             setPageSize(pageSize);
           }}
-          pageSizeOptions={[100, 500, 1000]}
+          pageSizeOptions={[100]}
           filterModel={filterModel}
           onFilterModelChange={(newModel) => {
             setFilterModel(newModel);
